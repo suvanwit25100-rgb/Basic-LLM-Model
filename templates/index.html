@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Space & Physics Tutor — an AI-powered tutor for astrophysics and physics questions, running locally on Apple silicon.">
+
+    <title>Space & Physics Tutor</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <!-- Animated starry background -->
+    <canvas id="starfield"></canvas>
+
+    <!-- Main chat container -->
+    <div class="chat-app" id="chatApp">
+
+        <!-- Header -->
+        <header class="chat-header" id="chatHeader">
+            <div class="header-glow"></div>
+            <div class="header-content">
+                <div class="header-icon">
+                    <svg viewBox="0 0 64 64" width="40" height="40" fill="none">
+                        <circle cx="32" cy="32" r="14" fill="url(#planet-grad)" />
+                        <ellipse cx="32" cy="32" rx="28" ry="8" stroke="url(#ring-grad)" stroke-width="2" fill="none" opacity="0.7"/>
+                        <defs>
+                            <radialGradient id="planet-grad"><stop offset="0%" stop-color="#a78bfa"/><stop offset="100%" stop-color="#6366f1"/></radialGradient>
+                            <linearGradient id="ring-grad"><stop offset="0%" stop-color="#818cf8" stop-opacity="0"/><stop offset="50%" stop-color="#c4b5fd"/><stop offset="100%" stop-color="#818cf8" stop-opacity="0"/></linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <div class="header-text">
+                    <h1>Space & Physics Tutor</h1>
+                    <p class="subtitle">Powered by Llama 3.2 · Running locally on Apple Silicon</p>
+                </div>
+                <div class="status-badge" id="statusBadge">
+                    <span class="status-dot"></span>
+                    <span class="status-label">Online</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Chat messages area -->
+        <main class="chat-messages" id="chatMessages">
+            <!-- Welcome message -->
+            <div class="welcome-card" id="welcomeCard">
+                <div class="welcome-icon">🔭</div>
+                <h2>Welcome, Explorer!</h2>
+                <p>Ask me anything about space, physics, astrophysics, quantum mechanics, or cosmology. I'm your personal tutor, running right here on your Mac.</p>
+                <div class="suggestion-chips">
+                    <button class="chip" data-q="Explain general relativity in simple terms.">General Relativity</button>
+                    <button class="chip" data-q="How do black holes form and what happens at the event horizon?">Black Holes</button>
+                    <button class="chip" data-q="What is quantum entanglement and why did Einstein call it spooky action at a distance?">Quantum Entanglement</button>
+                    <button class="chip" data-q="Derive the escape velocity of a planet from first principles.">Escape Velocity</button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Input area -->
+        <footer class="chat-input-area" id="chatInputArea">
+            <div class="input-wrapper">
+                <textarea
+                    id="messageInput"
+                    placeholder="Ask a physics question…"
+                    rows="1"
+                    maxlength="2000"
+                    aria-label="Type your physics question"
+                ></textarea>
+                <button id="sendBtn" class="send-btn" aria-label="Send message" title="Send">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                </button>
+            </div>
+            <p class="input-hint">Press <kbd>Enter</kbd> to send · <kbd>Shift+Enter</kbd> for new line</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

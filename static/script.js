@@ -146,6 +146,116 @@ setInterval(spawnShootingStar, SHOOTING_INTERVAL);
 //  CHAT LOGIC
 // ====================================================================
 
+/**
+ * Convert markdown-style text to beautifully rendered HTML.
+ * Supports bold, inline code, numbered and bullet lists, horizontal rules.
+ */
+function renderMarkdown(text) {
+    // Escape HTML entities first to prevent XSS
+    let html = text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+
+    // Inline code:  `code`
+    html = html.replace(/`([^`]+?)`/g, '<code>$1</code>');
+
+    // Bold:  **text** or __text__
+    html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/__(.+?)__/g, '<strong>$1</strong>');
+
+    // Italic:  *text* or _text_  (but not list markers)
+    // Only match if preceded by space/start and followed by space/end
+    html = html.replace(/(^|\s)\*([^*\n]+?)\*(\s|$)/g, '$1<em>$2</em>$3');
+
+    // Split into lines for block-level processing
+    const lines = html.split('\n');
+    const blocks = [];
+    let currentList = null;   // { type: 'ol'|'ul', items: [] }
+    let paraBuffer = [];      // accumulate text lines into one paragraph
+
+    function flushPara() {
+        if (paraBuffer.length > 0) {
+            blocks.push({ type: 'p', text: paraBuffer.join(' ') });
+            paraBuffer = [];
+        }
+    }
+
+    function flushList() {
+        if (currentList) {
+            blocks.push(currentList);
+            currentList = null;
+        }
+    }
+
+    for (const line of lines) {
+        const trimmed = line.trim();
+
+        // Skip empty lines — they are paragraph separators
+        if (!trimmed) {
+            flushPara();
+            flushList();
+            continue;
+        }
+
+        // Horizontal rule: --- or *** or ___
+        if (/^[-*_]{3,}$/.test(trimmed)) {
+            flushPara();
+            flushList();
+            blocks.push({ type: 'hr' });
+            continue;
+        }
+
+        // Numbered list:  1. item  or  1) item
+        const olMatch = trimmed.match(/^(\d+)[.)]\s+(.+)/);
+        if (olMatch) {
+            flushPara();
+            if (currentList && currentList.type === 'ol') {
+                currentList.items.push(olMatch[2]);
+            } else {
+                flushList();
+                currentList = { type: 'ol', items: [olMatch[2]] };
+            }
+            continue;
+        }
+
+        // Bullet list:  - item  or  + item  or  • item  or  * item
+        const ulMatch = trimmed.match(/^[-+•*]\s+(.+)/);
+        if (ulMatch) {
+            flushPara();
+            if (currentList && currentList.type === 'ul') {
+                currentList.items.push(ulMatch[1]);
+            } else {
+                flushList();
+                currentList = { type: 'ul', items: [ulMatch[1]] };
+            }
+            continue;
+        }
+
+        // Regular text line — accumulate into paragraph
+        flushList();
+        paraBuffer.push(trimmed);
+    }
+
+    flushPara();
+    flushList();
+
+    // Render blocks to HTML
+    return blocks.map(block => {
+        if (block.type === 'p') {
+            return `<p>${block.text}</p>`;
+        } else if (block.type === 'hr') {
+            return '<hr>';
+        } else if (block.type === 'ol') {
+            const items = block.items.map(i => `<li>${i}</li>`).join('');
+            return `<ol>${items}</ol>`;
+        } else {
+            const items = block.items.map(i => `<li>${i}</li>`).join('');
+            return `<ul>${items}</ul>`;
+        }
+    }).join('');
+}
+
 /** Append a message bubble to the chat area. */
 function appendMessage(role, text) {
     // Hide welcome card on first real message
@@ -160,7 +270,13 @@ function appendMessage(role, text) {
 
     const bubble = document.createElement('div');
     bubble.classList.add('message-content');
-    bubble.textContent = text;
+
+    // Render tutor responses as rich HTML; user messages as plain text
+    if (role === 'tutor') {
+        bubble.innerHTML = renderMarkdown(text);
+    } else {
+        bubble.textContent = text;
+    }
 
     wrapper.appendChild(avatar);
     wrapper.appendChild(bubble);

@@ -331,6 +331,63 @@ html, body {
 .message.tutor .message-content strong,
 .message.tutor .message-content b {
     color: var(--accent-3);
+    font-weight: 600;
+}
+
+.message.tutor .message-content em {
+    color: var(--accent-4);
+    font-style: italic;
+}
+
+/* Rendered markdown typography inside tutor bubbles */
+.message.tutor .message-content p {
+    margin: 0 0 10px 0;
+}
+
+.message.tutor .message-content p:last-child {
+    margin-bottom: 0;
+}
+
+.message.tutor .message-content ol,
+.message.tutor .message-content ul {
+    margin: 10px 0;
+    padding-left: 22px;
+}
+
+.message.tutor .message-content li {
+    margin-bottom: 6px;
+    line-height: 1.65;
+}
+
+.message.tutor .message-content li:last-child {
+    margin-bottom: 0;
+}
+
+.message.tutor .message-content ol li::marker {
+    color: var(--accent-4);
+    font-weight: 600;
+}
+
+.message.tutor .message-content ul li::marker {
+    color: var(--accent-3);
+}
+
+.message.tutor .message-content code {
+    background: rgba(99, 102, 241, 0.12);
+    border: 1px solid rgba(99, 102, 241, 0.18);
+    color: var(--accent-4);
+    padding: 1px 6px;
+    border-radius: 5px;
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 0.84em;
+    word-break: break-word;
+}
+
+.message.tutor .message-content hr {
+    border: none;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(129, 140, 248, 0.3), transparent);
+    margin: 14px 0;
 }
 
 /* --- Loading Indicator -------------------------------------------- */

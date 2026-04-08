@@ -5,6 +5,7 @@ Llama 3.2 model via Apple's mlx-lm library.
 """
 
 import os
+import re
 from flask import Flask, render_template, request, jsonify
 from mlx_lm import load, generate
 
@@ -13,14 +14,16 @@ from mlx_lm import load, generate
 # ---------------------------------------------------------------------------
 BASE_MODEL = "mlx-community/Llama-3.2-3B-Instruct-4bit"
 ADAPTER_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "adapters")
-MAX_TOKENS = 512
+MAX_TOKENS = 1024
 
 SYSTEM_PROMPT = (
     "You are an expert Space & Physics Tutor. "
-    "Provide clear, detailed, scientifically accurate explanations. "
-    "Use step-by-step reasoning when solving physics problems. "
-    "Be encouraging to students and use real-world examples "
-    "involving space, astrophysics, and cosmology when relevant."
+    "Always provide complete, well-structured, and scientifically accurate answers. "
+    "Format your responses using markdown: use **bold** for key terms, "
+    "numbered lists for step-by-step reasoning, and bullet points for related concepts. "
+    "Keep answers focused and self-contained — always finish your thoughts fully. "
+    "Use real-world examples from space, astrophysics, and cosmology. "
+    "Be encouraging and enthusiastic about physics."
 )
 
 # ---------------------------------------------------------------------------
@@ -38,6 +41,36 @@ print(f"    Adapter    : {ADAPTER_PATH}")
 model, tokenizer = load(BASE_MODEL, adapter_path=ADAPTER_PATH)
 
 print("✅  Model loaded and ready!\n")
+
+
+def trim_to_complete(text: str) -> str:
+    """
+    Trim generated text to the last complete sentence so responses
+    never end mid-word or mid-sentence.
+    """
+    text = text.strip()
+    if not text:
+        return text
+
+    # Already ends cleanly
+    if text[-1] in '.!?"':
+        return text
+
+    # Find the last sentence-ending punctuation
+    match = None
+    for m in re.finditer(r'[.!?](?:\s|$)', text):
+        match = m
+
+    if match:
+        return text[: match.end()].strip()
+
+    # Fallback: trim at last newline to keep complete lines
+    last_nl = text.rfind('\n')
+    if last_nl > len(text) // 3:
+        return text[:last_nl].strip()
+
+    # Ultimate fallback: return as-is rather than empty
+    return text
 
 # ---------------------------------------------------------------------------
 # Routes
@@ -84,7 +117,10 @@ def chat():
         verbose=False,
     )
 
-    return jsonify({"response": response_text.strip()})
+    # Trim to the last complete sentence to avoid cut-off output
+    clean_response = trim_to_complete(response_text)
+
+    return jsonify({"response": clean_response})
 
 
 # ---------------------------------------------------------------------------
